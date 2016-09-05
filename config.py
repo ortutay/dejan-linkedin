@@ -10,3 +10,7 @@ mailgun_domain = 'sandboxf1fb529c436147c69553809529747ca0.mailgun.org'
 phantomjs_bin = 'bin/phantomjs/phantomjs-2.1.1-macosx/bin/phantomjs'
 
 dropbox_token = 'dyyVaY6ILToAAAAAAAAoYOjpDpx4nSeEPvuRHcGRbkG-2gMeeQEX8Cjg4RYqSqPp'
+
+like_count_days = 3
+like_count_send_top = 3
+max_screenshots = 10

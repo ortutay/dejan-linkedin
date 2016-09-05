@@ -15,6 +15,7 @@ if __name__ == '__main__':
     email = sys.argv[1]
     password = sys.argv[2]
     urls = open(sys.argv[3]).read().strip().split('\n')
+    visit_urls = open(sys.argv[4]).read().strip().split('\n')
 
     user_agent = (
             "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_8_4) " +
@@ -23,13 +24,13 @@ if __name__ == '__main__':
     dcap = dict(DesiredCapabilities.PHANTOMJS)
     dcap["phantomjs.page.settings.userAgent"] = user_agent
 
-    driver = webdriver.PhantomJS(
-        executable_path=config.phantomjs_bin,
-        desired_capabilities=dcap)
+    # driver = webdriver.PhantomJS(
+    #     executable_path=config.phantomjs_bin,
+    #     desired_capabilities=dcap)
 
-    # driver = webdriver.Chrome()
+    driver = webdriver.Chrome(desired_capabilities=dcap)
 
     try:
-        check_and_email_updates(email, password, urls, driver)
+        check_and_email_updates(email, password, urls, visit_urls, driver, config)
     finally:
         driver.quit()

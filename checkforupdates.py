@@ -24,11 +24,11 @@ if __name__ == '__main__':
     dcap = dict(DesiredCapabilities.PHANTOMJS)
     dcap["phantomjs.page.settings.userAgent"] = user_agent
 
-    # driver = webdriver.PhantomJS(
-    #     executable_path=config.phantomjs_bin,
-    #     desired_capabilities=dcap)
+    driver = webdriver.PhantomJS(
+        executable_path=config.phantomjs_bin,
+        desired_capabilities=dcap)
 
-    driver = webdriver.Chrome(desired_capabilities=dcap)
+    # driver = webdriver.Chrome(desired_capabilities=dcap)
 
     try:
         check_and_email_updates(email, password, urls, visit_urls, driver, config)

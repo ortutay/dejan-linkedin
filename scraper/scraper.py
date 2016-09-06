@@ -98,7 +98,7 @@ class Scraper:
 
             m = re.search(r'activities/(.*?)\+', url)
             ss_name = None
-            if m:
+            if m and config.save_screenshots:
                 self.driver.get(url)
                 ss_name = 'screens/screen-%s-%s.png' % (
                     m.group(1), arrow.utcnow().format('YYYY-MM-DD'))
@@ -112,16 +112,21 @@ class Scraper:
             if self.check_blocks(blocks):
                 u = (self.name_from_url(url), url)
                 updated.append(u)
-                f = open(ss_name, 'rb')
-                resp = dbx.put_file(ss_name, f)
-                f = ('inline', f)
-                ss_files.append(f)
+
+                if config.save_screenshots:
+                    f = open(ss_name, 'rb')
+                    resp = dbx.put_file(ss_name, f)
+                    f = ('inline', f)
+                    ss_files.append(f)
 
             likes = self.most_liked_count(blocks)
             like_counts.append((likes, url))
-        print 'like counts'
+
         like_counts.sort(key=lambda(x): -x[0])
+
+        print 'like counts'
         pp.pprint(like_counts)
+
         return {
             'updated': updated,
             'top_likes': like_counts[:config.like_count_send_top],

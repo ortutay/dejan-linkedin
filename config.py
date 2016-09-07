@@ -16,4 +16,5 @@ like_count_days = 3
 like_count_send_top = 3
 max_screenshots = 10
 
-save_screenshots = True
+save_screenshots_in_dropbox = False
+send_screenshots_in_email = False

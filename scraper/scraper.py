@@ -1,6 +1,7 @@
 import arrow
 import dropbox
 import json
+import os
 import pprint
 import re
 import requests
@@ -98,7 +99,7 @@ class Scraper:
 
             m = re.search(r'activities/(.*?)\+', url)
             ss_name = None
-            if m and config.save_screenshots:
+            if m:
                 self.driver.get(url)
                 ss_name = 'screens/screen-%s-%s.png' % (
                     m.group(1), arrow.utcnow().format('YYYY-MM-DD'))
@@ -113,16 +114,26 @@ class Scraper:
                 u = (self.name_from_url(url), url)
                 updated.append(u)
 
-                if config.save_screenshots:
+                if ss_name:
                     f = open(ss_name, 'rb')
-                    resp = dbx.put_file(ss_name, f)
-                    f = ('inline', f)
-                    ss_files.append(f)
+                    if config.save_screenshots_in_dropbox:
+                        resp = dbx.put_file(ss_name, f)
+                    if config.send_screenshots_in_email:
+                        f = ('inline', f)
+                        ss_files.append(f)
+
+            if ss_name:
+                os.remove(ss_name)
 
             likes = self.most_liked_count(blocks)
             like_counts.append((likes, url))
 
-        like_counts.sort(key=lambda(x): -x[0])
+        def like_sort_key(l):
+            try:
+                return -l[0]
+            except:
+                return 0
+        like_counts.sort(key=like_sort_key)
 
         print 'like counts'
         pp.pprint(like_counts)

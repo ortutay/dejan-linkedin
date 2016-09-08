@@ -55,6 +55,8 @@ class Scraper:
     def __init__(self, driver, config):
         self.driver = driver
         self.config = config
+        if not os.path.exists('screens'):
+            os.mkdir('screens')
 
     def login(self, username, password):
         self.driver.get('https://www.linkedin.com/uas/login')

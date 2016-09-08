@@ -122,9 +122,6 @@ class Scraper:
                         f = ('inline', f)
                         ss_files.append(f)
 
-            if ss_name:
-                os.remove(ss_name)
-
             likes = self.most_liked_count(blocks)
             like_counts.append((likes, url))
 

@@ -20,6 +20,7 @@ def check_and_email_updates(email, password, urls, visit_urls, driver, config):
     results = s.check(urls)
     updated = results['updated']
     top_likes = results['top_likes']
+    top_comments = results['top_comments']
     ss_files = results['ss_files']
     s.visit(visit_urls)
     text = ''
@@ -36,6 +37,11 @@ def check_and_email_updates(email, password, urls, visit_urls, driver, config):
         config.like_count_send_top,
         config.like_count_days,
         '\n<br/>'.join([('- %s %s' % (x[0], x[1])) for x in top_likes]))
+
+    html += '\n<br/><br/>Top %s comments for last %s days:<br/>%s' % (
+        config.comment_count_send_top,
+        config.comment_count_days,
+        '\n<br/>'.join([('- %s %s' % (x[0], x[1])) for x in top_comments]))
 
     print 'sending email', html
     resp = requests.post(
@@ -92,6 +98,7 @@ class Scraper:
     def check(self, urls):
         updated = []
         like_counts = []
+        comment_counts = []
         ss_files = []
         for i, url in enumerate(urls):
             print '.', url
@@ -127,19 +134,27 @@ class Scraper:
             likes = self.most_liked_count(blocks)
             like_counts.append((likes, url))
 
-        def like_sort_key(l):
+            comments = self.most_commented_count(blocks)
+            print 'got comments', comments
+            comment_counts.append((comments, url))
+
+        def sort_key(l):
             try:
                 return -l[0]
             except:
                 return 0
-        like_counts.sort(key=like_sort_key)
+        like_counts.sort(key=sort_key)
+        comment_counts.sort(key=sort_key)
 
         print 'like counts'
         pp.pprint(like_counts)
+        print 'comment counts'
+        pp.pprint(comment_counts)
 
         return {
             'updated': updated,
             'top_likes': like_counts[:config.like_count_send_top],
+            'top_comments': comment_counts[:config.comment_count_send_top],
             'ss_files': ss_files,
         }
 
@@ -157,13 +172,24 @@ class Scraper:
                 likes = max(likes, block_likes)
         return likes
 
+    def most_commented_count(self, blocks):
+        comments = 0
+        for block in blocks:
+            if block.get('template', '') == 'update':
+                timestamp = self.get_update_timestamp(block)
+                print 'comments', comments
+                block_comments = 0
+                m = re.match('(\d+)d', timestamp)
+                if ((m and int(m.group(1)) < config.comment_count_days)
+                    or re.match('\d+h', timestamp)):
+                    block_comments = self.get_num_comments(block)
+                comments = max(comments, block_comments)
+        return comments
+
     def check_blocks(self, blocks):
         for block in blocks:
             if block.get('template', '') == 'update':
                 timestamp = self.get_update_timestamp(block)
-                likes = self.get_num_likes(block)
-                print 'likes', likes
-                # if re.match('\d+h', timestamp):
                 if re.match('\d+d', timestamp):
                     return True
 
@@ -179,7 +205,13 @@ class Scraper:
         for sub_block in block.get('blocks', []):
             if sub_block.get('template', '') == 'social&dsh;summary/likes&dsh;social&dsh;summary':
                 return int(sub_block['total'])
-        return ''
+        return 0
+
+    def get_num_comments(self, block):
+        for sub_block in block.get('blocks', []):
+            if sub_block.get('template', '') == 'social&dsh;summary/comments&dsh;social&dsh;summary':
+                return int(sub_block['total'])
+        return 0
 
     def name_from_url(self, url):
         m = re.search('activities/(.*?)\+', url)
